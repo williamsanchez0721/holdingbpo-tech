@@ -7,5 +7,6 @@ module.exports = {
     'npm run format --workspace=server',
     'npm run lint:fix --workspace=server',
   ],
-  '*.{json,md}': ['prettier --write'],
+  'scripts/**/*.js': ['prettier --write'],
+  '*.{json,md,js}': ['prettier --write'],
 };
