@@ -1,0 +1,104 @@
+{
+  "info": {
+    "name": "Guatapay Server",
+    "description": "Endpoints del backend de Guatapay (ver server/docs/BACKEND.md). Configura la variable de colección `baseUrl` si el server no corre en localhost:3000, y `token` con el valor devuelto por 'Crear wallet' o 'Recuperar por email/seed phrase'.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "serverUrl", "value": "http://localhost:3000" },
+    { "key": "baseUrl", "value": "{{serverUrl}}/api" },
+    { "key": "token", "value": "" },
+    { "key": "username", "value": "luismauricio297" }
+  ],
+  "item": [
+    {
+      "name": "Health check",
+      "request": {
+        "method": "GET",
+        "url": "{{serverUrl}}/health",
+        "description": "Confirma que el server está arriba."
+      }
+    },
+    {
+      "name": "Crear wallet nueva",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/wallets",
+        "description": "Devuelve { token, walletId }. Copiá el token a la variable de colección `token` para las siguientes requests autenticadas."
+      }
+    },
+    {
+      "name": "Ver disponibilidad de username",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/username/{{username}}/availability"
+      }
+    },
+    {
+      "name": "Reservar username",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/username",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Ver mi username",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/me/username"
+      }
+    },
+    {
+      "name": "Ver balance de la wallet",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/wallet/balance"
+      }
+    },
+    {
+      "name": "Ver movimientos recientes",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/wallet/transactions"
+      }
+    },
+    {
+      "name": "Recuperar por email",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/recover/email",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"correo@ejemplo.com\",\n  \"password\": \"contraseña\"\n}"
+        },
+        "description": "Requiere una cuenta con passwordHash ya seteado en Mongo — ver la nota de recuperación en el README raíz."
+      }
+    },
+    {
+      "name": "Recuperar por frase semilla",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/recover/seed-phrase",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"seedPhrase\": \"palabra1 palabra2 ... palabra12\"\n}"
+        },
+        "description": "Requiere una cuenta con seedPhraseHash ya seteado en Mongo — ver la nota de recuperación en el README raíz."
+      }
+    }
+  ]
+}

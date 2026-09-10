@@ -9,50 +9,37 @@ Guía general de convenciones y comandos: [`CLAUDE.md`](./CLAUDE.md).
 
 ## Cómo correr el proyecto completo (app + backend)
 
-Requisitos: Node.js LTS + la app **Expo Go** instalada en tu celular (Android/iOS).
-
-### 1. Instalar dependencias (una sola vez)
+Requisitos: Node.js LTS + la app **Expo Go** instalada en tu celular (Android/iOS), en la misma
+red Wi-Fi que esta computadora.
 
 ```bash
 npm install
+npm run dev
 ```
 
-Esto instala las dependencias de `app/` y `server/` juntas (npm workspaces).
+Con eso alcanza. `npm run dev`:
 
-### 2. Levantar el backend
+1. Detecta automáticamente la IP de tu red local y configura `app/.env` para que la app apunte
+   al backend con esa IP (no hay que buscarla a mano ni copiar ningún archivo).
+2. Levanta el backend (`server/`) — sin `.env`, sin instalar MongoDB: usa una MongoDB en memoria
+   solo para este proceso (los datos se pierden al reiniciarlo, lo cual está bien para probar).
+3. Levanta la app (`app/`) y muestra el QR de Expo — escanealo con Expo Go.
 
-```bash
-npm run dev --workspace=server
-```
+Ambos procesos corren juntos en la misma terminal (con prefijos de color `server`/`app`).
+`Ctrl+C` los detiene a los dos.
 
-No hace falta ningún `.env` ni instalar MongoDB: si no hay `MONGODB_URI` configurado, el server
-levanta automáticamente una MongoDB en memoria solo para ese proceso (los datos se pierden al
-reiniciarlo, lo cual está bien para probar la app). Dejalo corriendo en una terminal.
+Si la detección automática de IP falla o da una IP incorrecta (ej. tenés varias interfaces de
+red / VPN activa), edit'a `app/.env` a mano con `EXPO_PUBLIC_API_URL=http://TU_IP:3000/api` y
+volvé a correr `npm run dev` (no lo va a pisar si ya existe la variable).
 
-### 3. Apuntar la app al backend
+### Probar los endpoints directo con Postman
 
-Copiá el archivo de ejemplo:
-
-```bash
-cp app/.env.example app/.env
-```
-
-- Si vas a abrir la app en un **simulador/emulador** (corriendo en la misma computadora que el
-  backend), el valor por defecto (`http://localhost:3000/api`) ya funciona — no hace falta tocar nada.
-- Si vas a abrir la app en tu **celular con Expo Go**, `localhost` no sirve (apunta al celular, no
-  a tu computadora). Cambiá `EXPO_PUBLIC_API_URL` en `app/.env` por la IP local de tu computadora,
-  por ejemplo `http://192.168.1.10:3000/api` (obtenela con `ipconfig` en Windows o
-  `ifconfig`/`ip addr` en Mac/Linux — celular y computadora deben estar en la misma red Wi-Fi).
-
-### 4. Levantar la app
-
-En otra terminal:
-
-```bash
-npm run start --workspace=app
-```
-
-Escaneá el QR con Expo Go.
+Importá [`server/postman_collection.json`](./server/postman_collection.json) en Postman — trae
+todos los endpoints documentados en [`server/docs/BACKEND.md`](./server/docs/BACKEND.md) con
+ejemplos de body. Variables de colección: `baseUrl` (por defecto `http://localhost:3000/api`,
+cambialo por la IP si Postman corre en otra máquina que el server) y `token` (pegar ahí el valor
+que devuelve "Crear wallet nueva" o "Recuperar por email/seed phrase" para las requests
+autenticadas).
 
 ### Qué podés probar
 
