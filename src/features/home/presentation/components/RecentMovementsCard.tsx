@@ -8,6 +8,7 @@ import { TransactionRow } from './TransactionRow';
 
 interface RecentMovementsCardProps {
   transactions: Transaction[];
+  isAmountVisible: boolean;
   onDepositPress?: () => void;
   onViewAllPress?: () => void;
 }
@@ -25,6 +26,7 @@ function EmptyMovements({ onDepositPress }: { onDepositPress?: () => void }) {
 
 export function RecentMovementsCard({
   transactions,
+  isAmountVisible,
   onDepositPress,
   onViewAllPress,
 }: RecentMovementsCardProps) {
@@ -43,7 +45,11 @@ export function RecentMovementsCard({
         <EmptyMovements onDepositPress={onDepositPress} />
       ) : (
         transactions.map((transaction) => (
-          <TransactionRow key={transaction.id} transaction={transaction} />
+          <TransactionRow
+            key={transaction.id}
+            transaction={transaction}
+            isAmountVisible={isAmountVisible}
+          />
         ))
       )}
     </View>

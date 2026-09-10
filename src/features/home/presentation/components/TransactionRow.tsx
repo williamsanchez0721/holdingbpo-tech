@@ -6,6 +6,7 @@ import { colors } from '@shared/constants/colors';
 import { Transaction } from '../../domain/entities/Transaction';
 
 const FAILED_ICON_BACKGROUND = '#FCE4E4';
+const MASKED_AMOUNT = '*****';
 
 const ICON_BY_TYPE: Record<Transaction['type'], keyof typeof Ionicons.glyphMap> = {
   sent: 'arrow-up-outline',
@@ -15,11 +16,13 @@ const ICON_BY_TYPE: Record<Transaction['type'], keyof typeof Ionicons.glyphMap> 
 
 interface TransactionRowProps {
   transaction: Transaction;
+  isAmountVisible: boolean;
 }
 
-export function TransactionRow({ transaction }: TransactionRowProps) {
+export function TransactionRow({ transaction, isAmountVisible }: TransactionRowProps) {
   const isFailed = transaction.status === 'failed';
   const iconName = isFailed ? 'close-outline' : ICON_BY_TYPE[transaction.type];
+  const amountLabel = isAmountVisible ? transaction.amountLabel : MASKED_AMOUNT;
 
   return (
     <View style={styles.row}>
@@ -33,7 +36,7 @@ export function TransactionRow({ transaction }: TransactionRowProps) {
         </Text>
       </View>
       <View style={styles.amountGroup}>
-        <Text style={styles.amount}>{transaction.amountLabel}</Text>
+        <Text style={styles.amount}>{amountLabel}</Text>
         <Text style={styles.date}>{transaction.dateLabel}</Text>
       </View>
     </View>

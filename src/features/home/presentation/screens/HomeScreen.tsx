@@ -27,7 +27,7 @@ export function HomeScreen() {
           onToggleVisibility={toggleVisibility}
         />
         <SecurityReminderCard />
-        <RecentMovementsCard transactions={transactions} />
+        <RecentMovementsCard transactions={transactions} isAmountVisible={isVisible} />
       </ScrollView>
       <StatusBar style="dark" />
     </Screen>
