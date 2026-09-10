@@ -1,18 +1,24 @@
 import 'dotenv/config';
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
+const DEV_JWT_SECRET_FALLBACK = 'dev-secret-change-me';
 
-  if (!value) {
-    throw new Error(`Falta la variable de entorno ${name}`);
+function resolveJwtSecret(): string {
+  if (process.env.JWT_SECRET) {
+    return process.env.JWT_SECRET;
   }
 
-  return value;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Falta la variable de entorno JWT_SECRET');
+  }
+
+  console.warn('JWT_SECRET no configurado: usando un valor por defecto solo para desarrollo.');
+  return DEV_JWT_SECRET_FALLBACK;
 }
 
 export const env = {
   port: Number(process.env.PORT ?? 3000),
   nodeEnv: process.env.NODE_ENV ?? 'development',
-  mongodbUri: requireEnv('MONGODB_URI'),
-  jwtSecret: requireEnv('JWT_SECRET'),
+  // Si no se define, se levanta una MongoDB en memoria (ver config/db.ts) — solo para desarrollo.
+  mongodbUri: process.env.MONGODB_URI,
+  jwtSecret: resolveJwtSecret(),
 };

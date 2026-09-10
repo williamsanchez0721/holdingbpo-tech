@@ -7,10 +7,14 @@ agregar rutas o modelos nuevos.
 ## Setup
 
 ```bash
-cp .env.example .env   # completar MONGODB_URI y JWT_SECRET
-npm install             # o npm install en la raíz del monorepo
+npm install   # o npm install en la raíz del monorepo
 npm run dev
 ```
+
+No hace falta configurar nada más: si no hay un `.env` con `MONGODB_URI`, el servidor levanta
+automáticamente una MongoDB en memoria solo para ese proceso (los datos se pierden al reiniciar).
+Para conectar una MongoDB real (o cualquier otra config), copiá `.env.example` a `.env` y
+completá los valores — ver los comentarios de cada variable ahí.
 
 ## Scripts
 
