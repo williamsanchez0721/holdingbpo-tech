@@ -1,0 +1,18 @@
+export const colors = {
+  background: '#FFFFFF',
+  text: '#11181C',
+  primary: '#0A84FF',
+  border: '#E6E8EB',
+  brandBackground: '#1B0B34',
+  brandAccent: '#8B5CF6',
+  brandTextOnDark: '#FFFFFF',
+  brandMutedTextOnDark: 'rgba(255, 255, 255, 0.7)',
+  brandButtonBackground: '#341C5E',
+  brandDotInactive: 'rgba(255, 255, 255, 0.3)',
+  screenBackgroundLight: '#F3EAFB',
+  cardBackground: '#FFFFFF',
+  error: '#DC2626',
+  mutedText: '#6B7280',
+  softAccentBackground: '#C9A9F5',
+  iconCircleBackground: '#EADCFB',
+} as const;
