@@ -123,6 +123,11 @@ lo formatee con `Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long' })
 Reglas de validación de `username` (replicar `evaluateUsernameFormatUseCase.ts`):
 longitud 5–20, solo `[a-z0-9_]`, único en la colección `User`.
 
+`reserve` es idempotente para el propio usuario autenticado: si el username ya le pertenece
+(ej. el cliente lo vuelve a "reservar" localmente después de recuperar una billetera cuyo
+username ya vino asignado desde el backend), no se rechaza como `409` — solo se rechaza si le
+pertenece a otro usuario.
+
 ### 5.2 Creación de wallet nueva
 
 | Método | Ruta           | Body | Respuesta                             |

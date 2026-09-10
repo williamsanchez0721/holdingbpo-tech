@@ -1,10 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiRequest } from '@shared/services/apiClient';
+import { authSession } from '@shared/services/authSession';
 
 import { WalletRepositoryImpl } from './WalletRepositoryImpl';
 
-jest.mock('@react-native-async-storage/async-storage', () => ({
-  getItem: jest.fn(),
-  setItem: jest.fn(),
+jest.mock('@shared/services/apiClient', () => ({
+  apiRequest: jest.fn(),
+}));
+
+jest.mock('@shared/services/authSession', () => ({
+  authSession: {
+    setToken: jest.fn(),
+  },
 }));
 
 describe('WalletRepositoryImpl', () => {
@@ -12,41 +18,51 @@ describe('WalletRepositoryImpl', () => {
     jest.clearAllMocks();
   });
 
-  it('retorna un balance en cero para una billetera nueva (no recuperada)', async () => {
-    jest.mocked(AsyncStorage.getItem).mockResolvedValue(null);
+  it('obtiene el balance de la billetera desde el backend', async () => {
+    const balance = { amount: 0, currency: 'USD', convertedAmount: 0, convertedCurrency: 'COP' };
+    jest.mocked(apiRequest).mockResolvedValue(balance);
     const repository = new WalletRepositoryImpl();
 
-    await expect(repository.getBalance()).resolves.toEqual({
-      amount: 0,
-      currency: 'USD',
-      convertedAmount: 0,
-      convertedCurrency: 'COP',
-    });
+    await expect(repository.getBalance()).resolves.toEqual(balance);
+    expect(apiRequest).toHaveBeenCalledWith('/wallet/balance', { requiresAuth: true });
   });
 
-  it('retorna una lista vacía de movimientos para una billetera nueva', async () => {
-    jest.mocked(AsyncStorage.getItem).mockResolvedValue(null);
+  it('obtiene y mapea los movimientos recientes desde el backend', async () => {
+    jest.mocked(apiRequest).mockResolvedValue([
+      {
+        id: '1',
+        type: 'sent',
+        status: 'completed',
+        title: 'Enviaste',
+        subtitle: 'ERC-20 Network',
+        amountLabel: '100.00 USDT',
+        date: '2026-01-29T00:00:00.000Z',
+      },
+    ]);
     const repository = new WalletRepositoryImpl();
 
-    await expect(repository.getRecentTransactions()).resolves.toEqual([]);
-  });
-
-  it('retorna balance y movimientos simulados cuando la billetera fue recuperada', async () => {
-    jest.mocked(AsyncStorage.getItem).mockResolvedValue('true');
-    const repository = new WalletRepositoryImpl();
-
-    const balance = await repository.getBalance();
     const transactions = await repository.getRecentTransactions();
 
-    expect(balance.amount).toBeGreaterThan(0);
-    expect(transactions.length).toBeGreaterThan(0);
+    expect(transactions).toEqual([
+      {
+        id: '1',
+        type: 'sent',
+        status: 'completed',
+        title: 'Enviaste',
+        subtitle: 'ERC-20 Network',
+        amountLabel: '100.00 USDT',
+        dateLabel: expect.any(String),
+      },
+    ]);
   });
 
-  it('marca la billetera como recuperada', async () => {
+  it('crea la cuenta de la billetera y guarda el token de sesión', async () => {
+    jest.mocked(apiRequest).mockResolvedValue({ token: 'jwt-token', walletId: 'w1' });
     const repository = new WalletRepositoryImpl();
 
-    await repository.markAsRecovered();
+    await repository.createWalletAccount();
 
-    expect(AsyncStorage.setItem).toHaveBeenCalledWith('wallet.isRecovered', 'true');
+    expect(apiRequest).toHaveBeenCalledWith('/wallets', { method: 'POST' });
+    expect(authSession.setToken).toHaveBeenCalledWith('jwt-token');
   });
 });

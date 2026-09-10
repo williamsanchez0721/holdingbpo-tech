@@ -2,7 +2,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 import { Text, View } from 'react-native';
 
-import { markWalletAsRecoveredUseCase } from '@features/home/container';
+import { createWalletAccountUseCase } from '@features/home/container';
 import { RootStackParamList } from '@navigation/types';
 import { Screen } from '@shared/components/Screen';
 import { colors } from '@shared/constants/colors';
@@ -25,10 +25,10 @@ export function ConfirmPinScreen({ navigation, route }: Props) {
     originalPin: pin,
     onConfirmed: async () => {
       if (flow === 'recover') {
-        await markWalletAsRecoveredUseCase();
         navigation.replace('HomeTabs');
         return;
       }
+      await createWalletAccountUseCase();
       navigation.replace('CreateUsername');
     },
     onRestartRequired: () => navigation.replace('CreatePin'),

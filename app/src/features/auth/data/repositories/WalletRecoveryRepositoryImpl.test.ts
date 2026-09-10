@@ -1,10 +1,32 @@
+import { ApiError, apiRequest } from '@shared/services/apiClient';
+import { authSession } from '@shared/services/authSession';
+
 import { WalletRecoveryRepositoryImpl } from './WalletRecoveryRepositoryImpl';
 
-const VALID_SEED_PHRASE =
-  'yellow monday mug magazine scholar zone superheroes eleven wonderlust shoes precious spectrum';
+jest.mock('@shared/services/apiClient', () => {
+  class ApiError extends Error {
+    status: number;
+    constructor(status: number, message: string) {
+      super(message);
+      this.status = status;
+    }
+  }
+  return { apiRequest: jest.fn(), ApiError };
+});
+
+jest.mock('@shared/services/authSession', () => ({
+  authSession: {
+    setToken: jest.fn(),
+  },
+}));
 
 describe('WalletRecoveryRepositoryImpl', () => {
-  it('retorna el usuario recuperado cuando el correo y la contraseña coinciden con el backup', async () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('guarda el token y retorna el usuario cuando el correo y la contraseña son válidos', async () => {
+    jest.mocked(apiRequest).mockResolvedValue({ token: 'jwt-token', username: 'luismauricio297' });
     const repository = new WalletRecoveryRepositoryImpl();
 
     const username = await repository.recoverWithEmail(
@@ -13,25 +35,31 @@ describe('WalletRecoveryRepositoryImpl', () => {
     );
 
     expect(username).toBe('luismauricio297');
+    expect(authSession.setToken).toHaveBeenCalledWith('jwt-token');
   });
 
-  it('retorna null cuando el correo o la contraseña no coinciden', async () => {
+  it('retorna null cuando el backend rechaza las credenciales', async () => {
+    jest.mocked(apiRequest).mockRejectedValue(new ApiError(401, 'inválido'));
     const repository = new WalletRecoveryRepositoryImpl();
 
     const username = await repository.recoverWithEmail('otro@correo.com', 'incorrecta');
 
     expect(username).toBeNull();
+    expect(authSession.setToken).not.toHaveBeenCalled();
   });
 
-  it('retorna el usuario recuperado cuando la frase semilla coincide con el backup', async () => {
+  it('guarda el token y retorna el usuario cuando la frase semilla es válida', async () => {
+    jest.mocked(apiRequest).mockResolvedValue({ token: 'jwt-token', username: 'luismauricio297' });
     const repository = new WalletRecoveryRepositoryImpl();
 
-    const username = await repository.recoverWithSeedPhrase(VALID_SEED_PHRASE);
+    const username = await repository.recoverWithSeedPhrase('yellow monday mug');
 
     expect(username).toBe('luismauricio297');
+    expect(authSession.setToken).toHaveBeenCalledWith('jwt-token');
   });
 
   it('retorna null cuando la frase semilla no coincide', async () => {
+    jest.mocked(apiRequest).mockRejectedValue(new ApiError(401, 'inválido'));
     const repository = new WalletRecoveryRepositoryImpl();
 
     const username = await repository.recoverWithSeedPhrase('one two three four five six');

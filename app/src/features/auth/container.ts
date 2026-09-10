@@ -1,3 +1,4 @@
+import { AuthSessionRepositoryImpl } from './data/repositories/AuthSessionRepositoryImpl';
 import { BiometricRepositoryImpl } from './data/repositories/BiometricRepositoryImpl';
 import { PinRepositoryImpl } from './data/repositories/PinRepositoryImpl';
 import { UsernameRepositoryImpl } from './data/repositories/UsernameRepositoryImpl';
@@ -17,6 +18,7 @@ const usernameRepository = new UsernameRepositoryImpl();
 const pinRepository = new PinRepositoryImpl();
 const biometricRepository = new BiometricRepositoryImpl();
 const walletRecoveryRepository = new WalletRecoveryRepositoryImpl();
+const authSessionRepository = new AuthSessionRepositoryImpl();
 
 export const createPinUseCase = makeCreatePinUseCase(pinRepository);
 export const verifyPinUseCase = makeVerifyPinUseCase(pinRepository);
@@ -37,4 +39,5 @@ export const logoutUseCase = makeLogoutUseCase(
   pinRepository,
   biometricRepository,
   usernameRepository,
+  authSessionRepository,
 );

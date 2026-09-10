@@ -8,7 +8,7 @@ function makeFakeRepository(transactions: Transaction[]): WalletRepository {
     getBalance: () =>
       Promise.resolve({ amount: 0, currency: 'USD', convertedAmount: 0, convertedCurrency: 'COP' }),
     getRecentTransactions: () => Promise.resolve(transactions),
-    markAsRecovered: () => Promise.resolve(),
+    createWalletAccount: () => Promise.resolve(),
   };
 }
 

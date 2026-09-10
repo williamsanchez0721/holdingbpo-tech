@@ -1,3 +1,4 @@
+import { AuthSessionRepository } from '../repositories/AuthSessionRepository';
 import { BiometricRepository } from '../repositories/BiometricRepository';
 import { PinRepository } from '../repositories/PinRepository';
 import { UsernameRepository } from '../repositories/UsernameRepository';
@@ -47,17 +48,35 @@ function makeFakeUsernameRepository(): UsernameRepository & { cleared: boolean }
   return repository;
 }
 
+function makeFakeAuthSessionRepository(): AuthSessionRepository & { cleared: boolean } {
+  const repository = {
+    cleared: false,
+    clearToken() {
+      repository.cleared = true;
+      return Promise.resolve();
+    },
+  };
+  return repository;
+}
+
 describe('logoutUseCase', () => {
-  it('limpia el PIN, la preferencia de biometría y el usuario reservado', async () => {
+  it('limpia el PIN, la preferencia de biometría, el usuario reservado y el token de sesión', async () => {
     const pinRepository = makeFakePinRepository();
     const biometricRepository = makeFakeBiometricRepository();
     const usernameRepository = makeFakeUsernameRepository();
-    const logoutUseCase = makeLogoutUseCase(pinRepository, biometricRepository, usernameRepository);
+    const authSessionRepository = makeFakeAuthSessionRepository();
+    const logoutUseCase = makeLogoutUseCase(
+      pinRepository,
+      biometricRepository,
+      usernameRepository,
+      authSessionRepository,
+    );
 
     await logoutUseCase();
 
     expect(pinRepository.cleared).toBe(true);
     expect(biometricRepository.cleared).toBe(true);
     expect(usernameRepository.cleared).toBe(true);
+    expect(authSessionRepository.cleared).toBe(true);
   });
 });

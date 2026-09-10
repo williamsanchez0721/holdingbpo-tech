@@ -1,18 +1,54 @@
+import { apiRequest } from '@shared/services/apiClient';
+import { authSession } from '@shared/services/authSession';
+
 import { Transaction } from '../../domain/entities/Transaction';
 import { WalletBalance } from '../../domain/entities/WalletBalance';
 import { WalletRepository } from '../../domain/repositories/WalletRepository';
-import { walletLocalDataSource } from '../datasources/walletLocalDataSource';
+
+interface TransactionDto {
+  id: string;
+  type: Transaction['type'];
+  status: Transaction['status'];
+  title: string;
+  subtitle: string;
+  amountLabel: string;
+  date: string;
+}
+
+interface CreateWalletResponse {
+  token: string;
+  walletId: string;
+}
+
+function formatDateLabel(dateIso: string): string {
+  return new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long' }).format(
+    new Date(dateIso),
+  );
+}
 
 export class WalletRepositoryImpl implements WalletRepository {
   getBalance(): Promise<WalletBalance> {
-    return walletLocalDataSource.getBalance();
+    return apiRequest<WalletBalance>('/wallet/balance', { requiresAuth: true });
   }
 
-  getRecentTransactions(): Promise<Transaction[]> {
-    return walletLocalDataSource.getRecentTransactions();
+  async getRecentTransactions(): Promise<Transaction[]> {
+    const transactions = await apiRequest<TransactionDto[]>('/wallet/transactions', {
+      requiresAuth: true,
+    });
+
+    return transactions.map((transaction) => ({
+      id: transaction.id,
+      type: transaction.type,
+      status: transaction.status,
+      title: transaction.title,
+      subtitle: transaction.subtitle,
+      amountLabel: transaction.amountLabel,
+      dateLabel: formatDateLabel(transaction.date),
+    }));
   }
 
-  markAsRecovered(): Promise<void> {
-    return walletLocalDataSource.markAsRecovered();
+  async createWalletAccount(): Promise<void> {
+    const { token } = await apiRequest<CreateWalletResponse>('/wallets', { method: 'POST' });
+    await authSession.setToken(token);
   }
 }

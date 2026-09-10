@@ -2,7 +2,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { act } from 'react';
 
-import { markWalletAsRecoveredUseCase } from '@features/home/container';
+import { createWalletAccountUseCase } from '@features/home/container';
 import type { RootStackParamList } from '@navigation/types';
 
 import { createPinUseCase, enableBiometricLoginUseCase } from '../../container';
@@ -15,7 +15,7 @@ jest.mock('../../container', () => ({
 }));
 
 jest.mock('@features/home/container', () => ({
-  markWalletAsRecoveredUseCase: jest.fn(),
+  createWalletAccountUseCase: jest.fn(),
 }));
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ConfirmPin'>;
@@ -46,9 +46,10 @@ describe('ConfirmPinScreen', () => {
     jest.clearAllMocks();
   });
 
-  it('guarda el PIN y continúa cuando ambos PIN coinciden', async () => {
+  it('guarda el PIN, crea la cuenta de la billetera y continúa cuando ambos PIN coinciden', async () => {
     jest.mocked(createPinUseCase).mockResolvedValue(undefined);
     jest.mocked(enableBiometricLoginUseCase).mockResolvedValue('ENABLED');
+    jest.mocked(createWalletAccountUseCase).mockResolvedValue(undefined);
     const navigation = createNavigationMock();
 
     await renderScreen(navigation);
@@ -63,12 +64,12 @@ describe('ConfirmPinScreen', () => {
       expect(navigation.replace).toHaveBeenCalledWith('CreateUsername');
     });
     expect(createPinUseCase).toHaveBeenCalledWith('194723');
+    expect(createWalletAccountUseCase).toHaveBeenCalled();
   });
 
-  it('marca la billetera como recuperada y navega a Home cuando el flujo es de recuperación', async () => {
+  it('navega a Home sin crear una cuenta nueva cuando el flujo es de recuperación', async () => {
     jest.mocked(createPinUseCase).mockResolvedValue(undefined);
     jest.mocked(enableBiometricLoginUseCase).mockResolvedValue('ENABLED');
-    jest.mocked(markWalletAsRecoveredUseCase).mockResolvedValue(undefined);
     const navigation = createNavigationMock();
 
     await render(
@@ -91,7 +92,7 @@ describe('ConfirmPinScreen', () => {
     await waitFor(() => {
       expect(navigation.replace).toHaveBeenCalledWith('HomeTabs');
     });
-    expect(markWalletAsRecoveredUseCase).toHaveBeenCalled();
+    expect(createWalletAccountUseCase).not.toHaveBeenCalled();
   });
 
   it('muestra el error de no coincidencia cuando el PIN repetido no coincide', async () => {

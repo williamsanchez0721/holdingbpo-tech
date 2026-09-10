@@ -27,9 +27,13 @@ export async function reserveUsername(userId: string, username: string): Promise
     throw new HttpError(400, 'El nombre de usuario no cumple el formato requerido.');
   }
 
-  const isAvailable = await checkUsernameAvailability(username);
+  const existing = await UserModel.findOne({ username }).lean();
 
-  if (!isAvailable) {
+  // Reservar el propio username ya asignado es un no-op válido (ej. la app lo vuelve a
+  // "reservar" localmente tras recuperar una billetera cuyo username ya viene del backend).
+  const belongsToAnotherUser = existing !== null && existing._id.toString() !== userId;
+
+  if (belongsToAnotherUser) {
     throw new HttpError(409, 'El usuario ingresado no está disponible.');
   }
 

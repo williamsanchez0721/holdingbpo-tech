@@ -1,21 +1,33 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+import { apiRequest } from '@shared/services/apiClient';
+
 import { UsernameRepository } from '../../domain/repositories/UsernameRepository';
-import { usernameLocalDataSource } from '../datasources/usernameLocalDataSource';
+
+const RESERVED_USERNAME_KEY = 'auth.username';
+
+interface AvailabilityResponse {
+  available: boolean;
+}
 
 export class UsernameRepositoryImpl implements UsernameRepository {
   async checkAvailability(username: string): Promise<boolean> {
-    const taken = await usernameLocalDataSource.isTaken(username);
-    return !taken;
+    const { available } = await apiRequest<AvailabilityResponse>(
+      `/username/${encodeURIComponent(username)}/availability`,
+    );
+    return available;
   }
 
-  reserve(username: string): Promise<void> {
-    return usernameLocalDataSource.persist(username);
+  async reserve(username: string): Promise<void> {
+    await apiRequest('/username', { method: 'POST', body: { username }, requiresAuth: true });
+    await AsyncStorage.setItem(RESERVED_USERNAME_KEY, username);
   }
 
   getReserved(): Promise<string | null> {
-    return usernameLocalDataSource.getPersisted();
+    return AsyncStorage.getItem(RESERVED_USERNAME_KEY);
   }
 
   clearReserved(): Promise<void> {
-    return usernameLocalDataSource.clearPersisted();
+    return AsyncStorage.removeItem(RESERVED_USERNAME_KEY);
   }
 }

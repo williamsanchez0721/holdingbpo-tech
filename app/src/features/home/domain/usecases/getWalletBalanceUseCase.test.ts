@@ -12,7 +12,7 @@ function makeFakeRepository(): WalletRepository {
         convertedCurrency: 'COP',
       }),
     getRecentTransactions: () => Promise.resolve([]),
-    markAsRecovered: () => Promise.resolve(),
+    createWalletAccount: () => Promise.resolve(),
   };
 }
 
