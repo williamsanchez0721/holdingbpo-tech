@@ -1,26 +1,53 @@
 @AGENTS.md
 
-# holdingbpo-tech — Guía del proyecto
+# Guatapay — Guía del proyecto
 
 Este documento es la referencia principal del proyecto. Está escrito en español para que cualquier
-persona del equipo pueda entenderlo sin fricción. **Antes de escribir código nuevo, seguir directamente
-lo que está definido aquí y en `docs/ARCHITECTURE.md`, sin necesidad de preguntar ni de definir un proceso
-nuevo cada vez.**
+persona del equipo pueda entenderlo sin fricción.
 
-## Stack técnico
+## Estructura del repositorio (monorepo)
+
+Este repo es un **monorepo con npm workspaces** con dos proyectos independientes:
+
+```
+/
+├── app/      # App móvil Expo/React Native (Clean Architecture)
+├── server/   # Backend Express + MongoDB
+└── package.json  # workspaces root (solo orquesta husky/lint-staged)
+```
+
+- Todo lo relacionado a la **app móvil** (código, tests, convenciones, arquitectura) vive en
+  [`app/`](./app) — ver [`app/docs/ARCHITECTURE.md`](./app/docs/ARCHITECTURE.md) antes de crear
+  cualquier archivo nuevo dentro de `app/src/`.
+- Todo lo relacionado al **backend** vive en [`server/`](./server) — ver
+  [`server/docs/BACKEND.md`](./server/docs/BACKEND.md) para el contrato de API que debe cumplir
+  (pensado para reemplazar los data sources mockeados de la app sin tocar `domain`/`presentation`).
+- Los comandos (`lint`, `test`, `verify`, etc.) son **por workspace**: se corren dentro de la
+  carpeta correspondiente (`cd app && npm run verify`) o desde la raíz con
+  `npm run verify --workspace=app` / `npm run verify --workspace=server`.
+- `npm install` en la raíz instala las dependencias de ambos workspaces.
+- Husky + lint-staged viven en la raíz (único `.git` del repo) y corren lint/format por
+  workspace según qué carpeta tenga archivos modificados (ver `lint-staged.config.js`).
+
+El resto de este documento describe las convenciones de **`app/`** (la app móvil), que es donde
+vive la mayor parte del código hoy. El backend en `server/` sigue su propio stack (Node/Express/
+MongoDB) descrito en `server/docs/BACKEND.md`; no aplican las convenciones de Expo/React Native
+que siguen abajo.
+
+## Stack técnico (`app/`)
 
 - **Expo (SDK 57)** + **React Native 0.86** + **React 19**
-- **TypeScript** en modo `strict` (ver `tsconfig.json`)
+- **TypeScript** en modo `strict` (ver `app/tsconfig.json`)
 - **ESLint 9** (flat config) con `eslint-config-expo`, reglas de TypeScript, reglas de arquitectura
   e integración con Prettier
 - **Prettier** para formateo automático
-- **Jest** (`jest-expo`) + **React Native Testing Library** para tests — ver [`docs/TESTING.md`](./docs/TESTING.md)
-- **Husky + lint-staged** para validar el código antes de cada commit
-- Arquitectura: **Clean Architecture por features** — ver [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
-  (léelo antes de crear cualquier archivo nuevo dentro de `src/`)
+- **Jest** (`jest-expo`) + **React Native Testing Library** para tests — ver [`app/docs/TESTING.md`](./app/docs/TESTING.md)
+- **Husky + lint-staged** (raíz del monorepo) para validar el código antes de cada commit
+- Arquitectura: **Clean Architecture por features** — ver [`app/docs/ARCHITECTURE.md`](./app/docs/ARCHITECTURE.md)
+  (léelo antes de crear cualquier archivo nuevo dentro de `app/src/`)
 
-Toda la documentación extendida vive en [`docs/`](./docs/README.md) — este archivo (`CLAUDE.md`)
-es solo la guía rápida de referencia.
+Toda la documentación extendida vive en [`app/docs/`](./app/docs/README.md) — este archivo
+(`CLAUDE.md`) es solo la guía rápida de referencia.
 
 ## Requisitos previos
 
@@ -29,7 +56,7 @@ es solo la guía rápida de referencia.
 
 No se requiere instalar Android Studio, Xcode ni un JDK local para el desarrollo diario con Expo Go.
 
-## Comandos disponibles
+## Comandos disponibles (dentro de `app/`)
 
 | Comando                                           | Qué hace                                                                                                                 |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
@@ -45,16 +72,18 @@ No se requiere instalar Android Studio, Xcode ni un JDK local para el desarrollo
 | `npm run test:coverage`                           | Corre los tests generando reporte de cobertura                                                                           |
 | `npm run verify`                                  | Corre `typecheck` + `lint` + `format:check` + `test` en secuencia — **correr esto antes de dar por terminada una tarea** |
 
-El hook de pre-commit (Husky) ya ejecuta lint y formateo automáticamente sobre los archivos
-modificados antes de cada commit. Si el hook falla, el commit no se realiza hasta corregir los errores.
+Estos comandos se corren con cwd en `app/` (`cd app && npm run verify`) o desde la raíz con
+`npm run verify --workspace=app`. El hook de pre-commit (Husky, en la raíz) ya ejecuta lint y
+formateo automáticamente sobre los archivos modificados de cada workspace antes de cada commit.
+Si el hook falla, el commit no se realiza hasta corregir los errores.
 
-## Estructura del proyecto
+## Estructura del proyecto (`app/`)
 
-Ver [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) para el detalle completo de capas, ejemplo funcional
-(`src/features/home`) y reglas de dependencia. Resumen rápido:
+Ver [`app/docs/ARCHITECTURE.md`](./app/docs/ARCHITECTURE.md) para el detalle completo de capas,
+ejemplo funcional (`src/features/home`) y reglas de dependencia. Resumen rápido:
 
 ```
-src/
+app/src/
 ├── features/<feature>/{domain,data,presentation}
 ├── shared/{components,hooks,services,utils,types,constants}
 ├── navigation/
@@ -62,17 +91,17 @@ src/
 ```
 
 **Regla clave:** todo lo relacionado a un módulo de negocio nuevo se crea dentro de
-`src/features/<nombre-del-feature>/`, respetando las 3 capas (`domain`, `data`, `presentation`).
-No crear pantallas, hooks o lógica de negocio sueltos en la raíz de `src/`.
+`app/src/features/<nombre-del-feature>/`, respetando las 3 capas (`domain`, `data`, `presentation`).
+No crear pantallas, hooks o lógica de negocio sueltos en la raíz de `app/src/`.
 
-## Convenciones de código
+## Convenciones de código (`app/`)
 
 ### Nombres de archivos
 
 - Componentes y pantallas React: `PascalCase.tsx` (ej. `HomeScreen.tsx`, `PrimaryButton.tsx`)
-- Hooks: `camelCase.ts` empezando con `use` (ej. `useGreeting.ts`)
-- Entidades, interfaces de dominio, clases: `PascalCase.ts` (ej. `Greeting.ts`, `GreetingRepositoryImpl.ts`)
-- Funciones utilitarias, usecases, datasources: `camelCase.ts` (ej. `getGreetingUseCase.ts`)
+- Hooks: `camelCase.ts` empezando con `use` (ej. `useWalletBalance.ts`)
+- Entidades, interfaces de dominio, clases: `PascalCase.ts` (ej. `WalletBalance.ts`, `WalletRepositoryImpl.ts`)
+- Funciones utilitarias, usecases, datasources: `camelCase.ts` (ej. `getWalletBalanceUseCase.ts`)
 - Constantes y tema: `camelCase.ts` (ej. `colors.ts`)
 
 ### TypeScript
@@ -99,7 +128,7 @@ No crear pantallas, hooks o lógica de negocio sueltos en la raíz de `src/`.
 ### Buenas prácticas generales de código limpio
 
 - **Responsabilidad única**: cada función/archivo hace una sola cosa. Si un archivo hace demasiado,
-  dividirlo siguiendo las capas de `docs/ARCHITECTURE.md`.
+  dividirlo siguiendo las capas de `app/docs/ARCHITECTURE.md`.
 - **Nombres descriptivos**: el nombre de una función o variable debe explicar qué hace/contiene sin
   necesitar un comentario adicional. Evitar abreviaciones ambiguas.
 - **Sin código muerto**: no dejar imports, variables, funciones o archivos sin usar. ESLint lo marca
@@ -124,7 +153,7 @@ No crear pantallas, hooks o lógica de negocio sueltos en la raíz de `src/`.
 
 ### Testing
 
-Ver [`docs/TESTING.md`](./docs/TESTING.md) para la guía completa. Resumen:
+Ver [`app/docs/TESTING.md`](./app/docs/TESTING.md) para la guía completa. Resumen:
 
 - El test va **al lado** del archivo que prueba, con sufijo `.test.ts`/`.test.tsx` (no en una
   carpeta `__tests__` separada).
@@ -136,9 +165,9 @@ Ver [`docs/TESTING.md`](./docs/TESTING.md) para la guía completa. Resumen:
 
 ## Principios SOLID y reglas de arquitectura forzadas por ESLint
 
-La arquitectura por capas de este proyecto existe para sostener los principios SOLID, y varias de
-esas reglas están forzadas automáticamente por ESLint, no solo documentadas (detalle completo con
-tabla y justificación en [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)):
+La arquitectura por capas de `app/` existe para sostener los principios SOLID, y varias de esas
+reglas están forzadas automáticamente por ESLint, no solo documentadas (detalle completo con tabla
+y justificación en [`app/docs/ARCHITECTURE.md`](./app/docs/ARCHITECTURE.md)):
 
 - `domain` no puede importar de `data` ni de `presentation` (Dependency Inversion).
 - `data` no puede importar de `presentation`.
@@ -152,16 +181,23 @@ tabla y justificación en [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)):
 Si el linter rechaza un import o excede un límite de complejidad, **no se debe desactivar la
 regla**: se debe reorganizar el código para respetar el principio correspondiente.
 
-## Al agregar código nuevo (checklist rápido)
+## Al agregar código nuevo en `app/` (checklist rápido)
 
-1. ¿Es un feature de negocio nuevo? → Crear carpeta en `src/features/<nombre>` con sus 3 capas.
-2. ¿Es reutilizable entre features y no es lógica de negocio? → `src/shared/`.
-3. ¿Es configuración/infra transversal? → `src/core/`.
-4. ¿Agrega una pantalla? → Registrar la ruta en `src/navigation/`.
-5. ¿Agrega un usecase o repository? → Agregar su test junto al archivo (ver [`docs/TESTING.md`](./docs/TESTING.md)).
-6. Antes de terminar: correr `npm run verify`.
+1. ¿Es un feature de negocio nuevo? → Crear carpeta en `app/src/features/<nombre>` con sus 3 capas.
+2. ¿Es reutilizable entre features y no es lógica de negocio? → `app/src/shared/`.
+3. ¿Es configuración/infra transversal? → `app/src/core/`.
+4. ¿Agrega una pantalla? → Registrar la ruta en `app/src/navigation/`.
+5. ¿Agrega un usecase o repository? → Agregar su test junto al archivo (ver [`app/docs/TESTING.md`](./app/docs/TESTING.md)).
+6. Antes de terminar: correr `npm run verify` (dentro de `app/`).
 7. Si se agregan dependencias nuevas, usar `npx expo install <paquete>` en vez de `npm install`
    cuando el paquete tenga una versión específica para la versión de Expo del proyecto (SDK 57).
 
-No crear estructuras de carpetas nuevas dentro de `src/` fuera de `features/`, `shared/`,
-`navigation/` y `core/` sin actualizar `docs/ARCHITECTURE.md` primero.
+No crear estructuras de carpetas nuevas dentro de `app/src/` fuera de `features/`, `shared/`,
+`navigation/` y `core/` sin actualizar `app/docs/ARCHITECTURE.md` primero.
+
+## Al agregar código nuevo en `server/`
+
+Seguir el contrato y las convenciones descritas en [`server/docs/BACKEND.md`](./server/docs/BACKEND.md):
+capas `routes → controllers → services → models`, validación de payloads, y no exponer nunca
+`passwordHash`/`seedPhraseHash` en las respuestas. Antes de terminar: correr `npm run verify`
+dentro de `server/`.
