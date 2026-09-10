@@ -3,23 +3,14 @@ import { StatusBar } from 'expo-status-bar';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { RootStackParamList } from '@navigation/types';
-import { BubbleTransition } from '@shared/components/BubbleTransition';
 import { Screen } from '@shared/components/Screen';
 import { colors } from '@shared/constants/colors';
 
 import { AuthScreenHeader } from '../components/AuthScreenHeader';
-import { useBubbleNavigationTransition } from '../hooks/useBubbleNavigationTransition';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RecoveryMethod'>;
 
 export function RecoveryMethodScreen({ navigation }: Props) {
-  const recoverWithEmail = useBubbleNavigationTransition(() =>
-    navigation.navigate('RecoverWithEmail'),
-  );
-  const recoverWithSeedPhrase = useBubbleNavigationTransition(() =>
-    navigation.navigate('RecoverWithSeedPhrase'),
-  );
-
   return (
     <Screen backgroundColor={colors.screenBackgroundLight}>
       <AuthScreenHeader title="Recuperar billetera" onBackPress={navigation.goBack} />
@@ -32,31 +23,19 @@ export function RecoveryMethodScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.actions}>
-        <Pressable style={styles.optionButton} onPress={recoverWithEmail.trigger}>
+        <Pressable
+          style={styles.optionButton}
+          onPress={() => navigation.navigate('RecoverWithEmail')}
+        >
           <Text style={styles.optionButtonText}>Recuperar con email</Text>
         </Pressable>
-        <Pressable style={styles.optionButton} onPress={recoverWithSeedPhrase.trigger}>
+        <Pressable
+          style={styles.optionButton}
+          onPress={() => navigation.navigate('RecoverWithSeedPhrase')}
+        >
           <Text style={styles.optionButtonText}>Recuperar con frase semilla</Text>
         </Pressable>
       </View>
-
-      {recoverWithEmail.origin ? (
-        <BubbleTransition
-          color={colors.cardBackground}
-          originX={recoverWithEmail.origin.x}
-          originY={recoverWithEmail.origin.y}
-          onFinished={recoverWithEmail.handleFinished}
-        />
-      ) : null}
-
-      {recoverWithSeedPhrase.origin ? (
-        <BubbleTransition
-          color={colors.cardBackground}
-          originX={recoverWithSeedPhrase.origin.x}
-          originY={recoverWithSeedPhrase.origin.y}
-          onFinished={recoverWithSeedPhrase.handleFinished}
-        />
-      ) : null}
 
       <StatusBar style="dark" />
     </Screen>
