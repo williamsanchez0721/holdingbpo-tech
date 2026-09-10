@@ -78,6 +78,14 @@ Toda la documentación extendida vive en [`app/docs/`](./app/docs/README.md) —
   mensaje claro en vez de un error críptico más adelante.
 - App **Expo Go** instalada en el celular (Android/iOS) para probar sin necesidad de Android Studio o Xcode
 
+**Usar siempre `npm` — nunca `bun`, `pnpm`, `yarn` u otro gestor de paquetes.** El repo es un
+monorepo de **npm workspaces** y todos los scripts (`predev`, `dev`, `verify`, etc.) usan la sintaxis
+`npm run <script> --workspace=<paquete>`. Otros gestores no interpretan ese flag igual (por ejemplo,
+`bun run` lo pasa como argumento literal en vez de resolver el workspace), lo que rompe los scripts
+encadenados y puede producir errores confusos o loops de procesos anidados. Si instalaste con otro
+gestor por error, borrá su lockfile (`bun.lock`, `pnpm-lock.yaml`, `yarn.lock`) y corré `npm install`
+de nuevo.
+
 No se requiere instalar Android Studio, Xcode ni un JDK local para el desarrollo diario con Expo Go.
 
 ## Comandos disponibles (dentro de `app/`)

@@ -61,7 +61,11 @@ autenticadas).
   crear esa cuenta a mano en Mongo (hashear password/seed phrase con bcrypt) o esperar a que se
   construya esa pantalla.
 
-## Comandos por workspace
+## Correr un comando suelto en un solo workspace (opcional)
+
+Esto **no es un paso adicional para levantar el proyecto** (para eso alcanza con `npm run dev`,
+arriba) — es para cuando querés correr un script puntual (`lint`, `test`, `verify`, etc.) en un
+solo paquete, sin levantar todo:
 
 ```bash
 npm run <script> --workspace=app
