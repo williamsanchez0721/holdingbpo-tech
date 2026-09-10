@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { ScrollView, StyleSheet } from 'react-native';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
 
 import { Screen } from '@shared/components/Screen';
 import { colors } from '@shared/constants/colors';
@@ -17,6 +17,15 @@ export function HomeScreen() {
   const { balance, isVisible, toggleVisibility } = useWalletBalance();
   const { transactions } = useRecentTransactions();
 
+  const handleSecurityReminderPress = () => {
+    Alert.alert(
+      'Próximamente',
+      'Todavía no se puede crear un método de recuperación (email/contraseña o frase semilla) ' +
+        'desde la app. Por ahora, "Recuperar billetera" solo funciona con una cuenta que ya ' +
+        'tenga uno configurado directamente en la base de datos.',
+    );
+  };
+
   return (
     <Screen backgroundColor={colors.screenBackgroundLight} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -26,7 +35,7 @@ export function HomeScreen() {
           isVisible={isVisible}
           onToggleVisibility={toggleVisibility}
         />
-        <SecurityReminderCard />
+        <SecurityReminderCard onPress={handleSecurityReminderPress} />
         <RecentMovementsCard transactions={transactions} isAmountVisible={isVisible} />
       </ScrollView>
       <StatusBar style="dark" />
