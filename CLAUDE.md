@@ -20,14 +20,35 @@ Este repo es un **monorepo con npm workspaces** con dos proyectos independientes
   [`app/`](./app) — ver [`app/docs/ARCHITECTURE.md`](./app/docs/ARCHITECTURE.md) antes de crear
   cualquier archivo nuevo dentro de `app/src/`.
 - Todo lo relacionado al **backend** vive en [`server/`](./server) — ver
-  [`server/docs/BACKEND.md`](./server/docs/BACKEND.md) para el contrato de API que debe cumplir
-  (pensado para reemplazar los data sources mockeados de la app sin tocar `domain`/`presentation`).
+  [`server/docs/BACKEND.md`](./server/docs/BACKEND.md) para el contrato de API. La app ya está
+  conectada a estos endpoints (no quedan data sources mockeados en `app/`, salvo PIN y biometría,
+  que son intencionalmente locales al dispositivo — ver la sección "Qué se queda 100% en el
+  dispositivo" de `server/docs/BACKEND.md`).
 - Los comandos (`lint`, `test`, `verify`, etc.) son **por workspace**: se corren dentro de la
   carpeta correspondiente (`cd app && npm run verify`) o desde la raíz con
   `npm run verify --workspace=app` / `npm run verify --workspace=server`.
-- `npm install` en la raíz instala las dependencias de ambos workspaces.
 - Husky + lint-staged viven en la raíz (único `.git` del repo) y corren lint/format por
   workspace según qué carpeta tenga archivos modificados (ver `lint-staged.config.js`).
+
+### Cómo correr todo el proyecto (app + backend) — un solo comando
+
+```bash
+npm install
+npm run dev
+```
+
+`npm run dev` (en la raíz) detecta la IP de red local de la máquina, configura `app/.env` con
+`EXPO_PUBLIC_API_URL` automáticamente, y levanta el backend (con una MongoDB en memoria — sin
+`.env` ni instalación de Mongo) y el servidor de Expo juntos, en la misma terminal. El detalle
+completo (incluyendo el caso de una IP mal detectada) está en el [`README.md`](./README.md) raíz.
+Para probar el API directamente sin la app, importar [`server/postman_collection.json`](./server/postman_collection.json)
+en Postman.
+
+**Limitación conocida:** no existe todavía una pantalla para _crear_ un método de recuperación
+(email/contraseña o frase semilla) — solo para recuperar a partir de uno ya existente. El flujo
+de "Recuperar billetera" no se puede probar contra una cuenta nueva hasta que se construya esa
+pantalla, o se cree la cuenta a mano en Mongo. Dentro de la app, tocar el aviso "Crea un método
+de recuperación" en Home muestra un aviso explicando esto (`HomeScreen.tsx`).
 
 El resto de este documento describe las convenciones de **`app/`** (la app móvil), que es donde
 vive la mayor parte del código hoy. El backend en `server/` sigue su propio stack (Node/Express/
@@ -51,7 +72,10 @@ Toda la documentación extendida vive en [`app/docs/`](./app/docs/README.md) —
 
 ## Requisitos previos
 
-- Node.js LTS y npm
+- **Node.js 22.13 o superior** (trae `npm`) — es lo único que hay que instalar a mano; el resto
+  (Expo CLI, MongoDB, etc.) lo resuelve `npm install`. Está forzado por `engines` en los
+  `package.json` + `engine-strict=true` en `.npmrc`, así que una versión vieja falla con un
+  mensaje claro en vez de un error críptico más adelante.
 - App **Expo Go** instalada en el celular (Android/iOS) para probar sin necesidad de Android Studio o Xcode
 
 No se requiere instalar Android Studio, Xcode ni un JDK local para el desarrollo diario con Expo Go.

@@ -9,8 +9,17 @@ Guía general de convenciones y comandos: [`CLAUDE.md`](./CLAUDE.md).
 
 ## Cómo correr el proyecto completo (app + backend)
 
-Requisitos: Node.js LTS + la app **Expo Go** instalada en tu celular (Android/iOS), en la misma
-red Wi-Fi que esta computadora.
+### Requisitos (lo único que hay que instalar a mano)
+
+- **[Node.js 22.13 o superior](https://nodejs.org/)** (incluye `npm`). Es el único requisito real:
+  todo lo demás (Expo CLI, MongoDB, etc.) lo instala `npm install` dentro del repo — no hace falta
+  tener React Native, Expo ni MongoDB instalados globalmente en la máquina.
+  Si tu Node es más viejo, `npm install`/`npm run dev` van a fallar de entrada con un mensaje
+  explícito ("Unsupported engine") en vez de un error críptico más adelante.
+- La app **Expo Go** instalada en tu celular (Android/iOS), en la misma red Wi-Fi que esta
+  computadora — esto sí es manual, es una app que se descarga desde la tienda de tu celular.
+
+### Correrlo
 
 ```bash
 npm install
@@ -45,10 +54,12 @@ autenticadas).
 
 - **Crear billetera**: Onboarding → PIN → nombre de usuario → Home con balance en $0.
 - **Recuperar billetera**: actualmente no hay una pantalla para _generar_ un backup (email/password
-  o frase semilla) — es un feature pendiente (ver el aviso "Crea un método de recuperación" en
-  Home). Sin una cuenta con backup ya configurada en la base de datos, el flujo de recuperación
-  siempre va a responder "credenciales inválidas". Para probarlo igual, hay que crear esa cuenta
-  a mano en Mongo (hashear password/seed phrase con bcrypt) o esperar a que se construya esa pantalla.
+  o frase semilla) — es un feature pendiente. Tocar el aviso "Crea un método de recuperación" en
+  Home lo dice explícitamente dentro de la propia app (no hace falta leer el código para
+  enterarse). Sin una cuenta con backup ya configurada en la base de datos, el flujo de
+  recuperación siempre va a responder "credenciales inválidas". Para probarlo igual, hay que
+  crear esa cuenta a mano en Mongo (hashear password/seed phrase con bcrypt) o esperar a que se
+  construya esa pantalla.
 
 ## Comandos por workspace
 
